@@ -1,0 +1,25 @@
+﻿{
+  "name": "test-node",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "build:css": "npx tailwindcss -i ./styles/main.css -o ./dist/output.css --watch",
+    "webServer": "nodemon src/webServer.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.0",
+    "nodemon": "^3.1.7"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "mocha": "^10.7.3",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13"
+  }
+}
