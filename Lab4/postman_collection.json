@@ -1,0 +1,288 @@
+﻿{
+      "info": {
+        "name": "Lab4 Articles API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+      },
+      "variable": [
+        {
+          "key": "base",
+          "value": "http://localhost:3000"
+        },
+        {
+          "key": "firstId",
+          "value": ""
+        },
+        {
+          "key": "auth",
+          "value": "user"
+        }
+      ],
+      "item": [
+        {
+          "name": "1 - Liste des articles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles",
+              "host": ["{{base}}"],
+              "path": ["api", "articles"]
+            }
+          }
+        },
+        {
+          "name": "2 - Création article (capture id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Clavier mécanique\",\n  \"description\": \"Switchs bleus\",\n  \"price\": 129.9\n}"
+            },
+            "url": {
+              "raw": "{{base}}/api/articles",
+              "host": ["{{base}}"],
+              "path": ["api", "articles"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status 201', () => pm.response.code === 201);",
+                    "const json = pm.response.json();",
+                    "pm.expect(json).to.have.property('id');",
+                    "pm.collectionVariables.set('firstId', json.id);",
+                    "pm.test('Id stocké', () => !!pm.collectionVariables.get('firstId'));"
+                  ]
+                }
+            }
+          ]
+        },
+        {
+          "name": "3 - Création second article",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Souris gaming\",\n  \"description\": \"RGB\",\n  \"price\": 59.5\n}"
+            },
+            "url": {
+              "raw": "{{base}}/api/articles",
+              "host": ["{{base}}"],
+              "path": ["api", "articles"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": [ "pm.test('Status 201', () => pm.response.code === 201);" ] }
+            }
+          ]
+        },
+        {
+          "name": "4 - Liste (debug)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles",
+              "host": ["{{base}}"],
+              "path": ["api", "articles"]
+            }
+          }
+        },
+        {
+          "name": "5 - Récupération par id (premier)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "if(!pm.collectionVariables.get('firstId')) throw new Error('firstId non défini');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.code === 200);",
+                  "pm.test('Id correspond', () => pm.response.json().id === pm.collectionVariables.get('firstId'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6 - Update partiel (prix)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 149.0\n}"
+            },
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.code === 200);",
+                  "pm.test('Prix mis à jour', () => pm.response.json().price === 149.0);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "7 - Vérifier après update",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          }
+        },
+        {
+          "name": "8 - Suppression",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.code === 200);",
+                  "pm.test('Même id supprimé', () => pm.response.json().id === pm.collectionVariables.get('firstId'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "9 - Vérifier suppression (404 attendu)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": [ "pm.test('Status 404', () => pm.response.code === 404);" ] }
+            }
+          ]
+        },
+        {
+          "name": "10 - Erreur création (price manquant)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalide\"\n}"
+            },
+            "url": {
+              "raw": "{{base}}/api/articles",
+              "host": ["{{base}}"],
+              "path": ["api", "articles"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": [ "pm.test('Status 400', () => pm.response.code === 400);" ] }
+            }
+          ]
+        },
+        {
+          "name": "11 - Erreur update (aucun champ fourni)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "{{auth}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": {
+              "raw": "{{base}}/api/articles/{{firstId}}",
+              "host": ["{{base}}"],
+              "path": ["api", "articles", "{{firstId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "exec": [ "pm.test('Status 400', () => pm.response.code === 400);" ] }
+            }
+          ]
+        }
+      ]
+    }

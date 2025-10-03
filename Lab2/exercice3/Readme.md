@@ -6,7 +6,7 @@
    ```bash
    npm init -y
    ```
-3. Ajoutez votre code (ex: exportez une fonction dans `index.js`).
+3. Ajoutez votre code (ex: exportez une fonction dans `index.ts`).
 
 ---
 
@@ -44,7 +44,7 @@ npm unlink package-test-project
 Dans le dossier du projet:
 - Pour exécuter le fichier principal:
   ```bash
-  node index.js
+  node index.ts
   
   # Ou
   
