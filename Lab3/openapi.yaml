@@ -1,0 +1,288 @@
+﻿openapi: 3.0.3
+info:
+  title: Mini API E-commerce (Articles, Panier, Paiement)
+  version: 1.0.0
+  description: >
+    API basique pour gérer des articles, un panier et le paiement.
+servers:
+  - url: http://localhost:3000/api
+    description: Développement local
+tags:
+  - name: Articles
+  - name: Panier
+  - name: Paiement
+paths:
+  /articles:
+    get:
+      tags: [Articles]
+      summary: Lister les articles
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+          description: Filtre texte (nom/description)
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        '200':
+          description: Liste d'articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Article' }
+    post:
+      tags: [Articles]
+      summary: Créer un article
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NewArticle' }
+            examples:
+              ex:
+                value: { name: "T-shirt", description: "Coton bio", price: 19.9 }
+      responses:
+        '201':
+          description: Créé
+          headers:
+            Location:
+              description: URL de la nouvelle ressource
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Article' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /articles/{articleId}:
+    parameters:
+      - in: path
+        name: articleId
+        required: true
+        schema: { type: string }
+    get:
+      tags: [Articles]
+      summary: Récupérer un article
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Article' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Articles]
+      summary: Supprimer un article
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '204': { description: Supprimé }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /cart:
+    get:
+      tags: [Panier]
+      summary: Voir le panier courant
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: Panier
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Panier]
+      summary: Ajouter un article au panier
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AddToCart' }
+            examples:
+              ex: { value: { articleId: "art_123", quantity: 2 } }
+      responses:
+        '201':
+          description: Ajouté
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+  /cart/items/{itemId}:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema: { type: string }
+    patch:
+      tags: [Panier]
+      summary: Modifier la quantité d'un item
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: Panier mis à jour
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+    delete:
+      tags: [Panier]
+      summary: Retirer un item du panier
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '204': { description: Supprimé }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /checkout:
+    post:
+      tags: [Paiement]
+      summary: Payer le panier
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string }
+          description: Éviter les doubles débits (clé idempotente)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PaymentRequest' }
+            examples:
+              card: { value: { paymentMethodId: "pm_abc", currency: "EUR" } }
+      responses:
+        '200':
+          description: Paiement traité
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaymentResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '402':
+          description: Payment Required (simulation d’échec)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Conflit (ex. double paiement détecté via Idempotency-Key)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Mauvaise requête
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Non authentifié
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: Accès interdit
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: Ressource introuvable
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unprocessable:
+      description: Données valides mais impossibles à traiter
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  schemas:
+    Article:
+      type: object
+      required: [id, name, price]
+      properties:
+        id: { type: string, example: "art_123" }
+        name: { type: string, example: "T-shirt" }
+        description: { type: string, example: "Coton bio 180g" }
+        price: { type: number, minimum: 0, example: 19.9 }
+
+    NewArticle:
+      type: object
+      required: [name, price]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        price: { type: number, minimum: 0 }
+
+    CartItem:
+      type: object
+      required: [id, articleId, name, price, quantity, subtotal]
+      properties:
+        id: { type: string, example: "item_987" }
+        articleId: { type: string, example: "art_123" }
+        name: { type: string, example: "T-shirt" }
+        price: { type: number, minimum: 0, example: 19.9 }
+        quantity: { type: integer, minimum: 0, example: 2 }
+        subtotal: { type: number, minimum: 0, example: 39.8 }
+
+    Cart:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CartItem' }
+        total: { type: number, minimum: 0, example: 39.8 }
+
+    AddToCart:
+      type: object
+      required: [articleId, quantity]
+      properties:
+        articleId: { type: string }
+        quantity: { type: integer, minimum: 1 }
+
+    PaymentRequest:
+      type: object
+      required: [paymentMethodId, currency]
+      properties:
+        paymentMethodId: { type: string, example: "pm_abc123" }
+        currency: { type: string, example: "EUR" }
+
+    PaymentResult:
+      type: object
+      required: [status, reference]
+      properties:
+        status:
+          type: string
+          enum: [succeeded, requires_action, failed]
+          example: succeeded
+        reference: { type: string, example: "ch_12345" }
+
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        code: { type: string }
