@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/bin/www.js",
-    "dev": "nodemon --watch . --ext ts,json --exec \"node --loader ts-node/esm bin/www.ts\""
+    "dev": "nodemon --watch . --ext ts,json --exec tsx bin/www.ts"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -21,6 +21,7 @@
     "@types/node": "^24.6.2",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }
