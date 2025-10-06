@@ -1,0 +1,146 @@
+﻿{
+  "info": {
+    "name": "Lab5 Users & Articles API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "firstArticleId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"adminpass\"\n}"
+        },
+        "url": { "raw": "{{base}}/api/users/register", "host": ["{{base}}"], "path": ["api", "users", "register"] }
+      }
+    },
+    {
+      "name": "Login User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"adminpass\"\n}"
+        },
+        "url": { "raw": "{{base}}/api/users/login", "host": ["{{base}}"], "path": ["api", "users", "login"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('token', 'Bearer ' + json.token);",
+              "pm.test('Token reçu', () => !!json.token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get My Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base}}/api/users/me", "host": ["{{base}}"], "path": ["api", "users", "me"] }
+      }
+    },
+    {
+      "name": "Get All Users (ADMIN only)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base}}/api/users", "host": ["{{base}}"], "path": ["api", "users"] }
+      }
+    },
+    {
+      "name": "List Articles",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base}}/api/articles", "host": ["{{base}}"], "path": ["api", "articles"] }
+      }
+    },
+    {
+      "name": "Create Article (Admin only)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Clavier mécanique\",\n  \"description\": \"Switchs bleus\",\n  \"price\": 129.9\n}"
+        },
+        "url": { "raw": "{{base}}/api/articles", "host": ["{{base}}"], "path": ["api", "articles"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('firstArticleId', json.id);",
+              "pm.test('Article créé', () => !!json.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Article by Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base}}/api/articles/{{firstArticleId}}", "host": ["{{base}}"], "path": ["api", "articles", "{{firstArticleId}}"] }
+      }
+    },
+    {
+      "name": "Update Article (Admin only)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 149.0\n}"
+        },
+        "url": { "raw": "{{base}}/api/articles/{{firstArticleId}}", "host": ["{{base}}"], "path": ["api", "articles", "{{firstArticleId}}"] }
+      }
+    },
+    {
+      "name": "Delete Article (Admin only)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "{{token}}" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base}}/api/articles/{{firstArticleId}}", "host": ["{{base}}"], "path": ["api", "articles", "{{firstArticleId}}"] }
+      }
+    }
+  ]
+}
